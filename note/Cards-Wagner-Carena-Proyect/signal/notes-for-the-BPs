@@ -1,0 +1,16 @@
+**********
+ k-factor
+**********
+
+the BP cross section (see the image) is LO, and we have found (Duncan, Wagner, et al) that the NLO k-factor is about 1.25, which should be multiplied into the cross sections to estimate the full cross section.
+
+
+**********************
+ 2nd neutralino decay
+**********************
+
+you gotta set it by hand (already done for the BP0 to BP15)
+
+DECAY   1000023     2.68283572E-09   # neutralino2 decays
+#          BR         NDA      ID1       ID2
+     1.00000 2 22 1000022 # br(~chi_20 -> ~chi_10 gam)
