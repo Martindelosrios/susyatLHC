@@ -341,7 +341,7 @@ def Z_BL_asimov(D_or_E, B_data, S_data, B_expected, S_expected, num_bins, range_
 # POISSON BIN LIKELIHOOD TEST #
 ###############################
 
-def BL_test_fast(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num_bins, range_dat, MIN_EVS, linear_bins=True, path = './'):
+def BL_test_fast(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num_bins, range_dat, MIN_EVS, linear_bins=True):
 
 	# FIND THE SIGNIFICANCE WITH POISSON BIN LIKELIHOOD USING THE TEST STATISTIC FORMALISM (gives statistical error) 
 	# Inputs:
@@ -369,10 +369,7 @@ def BL_test_fast(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num
         
         
     # Expected background events per bin ,cömo
-    if range_dat is None:
-        hist_back, binedges_back = np.histogramdd([B_data], bins=(num_bins))
-    else:
-        hist_back, binedges_back = np.histogramdd([B_data], bins=(num_bins), range = range_dat)
+    hist_back, binedges_back = np.histogramdd([B_data], bins=(num_bins), range = range_dat)
     bin_edges = binedges_back[0]
     back_prom_bins = hist_back / (len(B_data) / B_expected)
 
@@ -594,17 +591,12 @@ def BL_test_fast(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num
     plt.ylabel("Fraction of pseudo experiments",fontsize=16)
     plt.grid()
     plt.legend(fontsize=14)
-    plt.savefig(path + 'BLFast_qmuhat_dist.pdf')
     plt.show()
     
     
     
     # With the calculation of mu_hat
     muhat_mean_bins = np.mean(muhat_selected_bins_list)
-    plt.hist(np.asarray(muhat_selected_bins_list))
-    plt.xlabel(r'$\hat{\mu}$')
-    plt.savefig(path + 'BLFast_muhat_dist.pdf')
-    
 
     Z_bins = abs( np.median(q_muhat_bins) )**0.5
     Z_bins_std = np.std(q_muhat_bins) / (2.*Z_bins)
@@ -625,7 +617,7 @@ def BL_test_fast(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num
 
     
     
-def BL_test_fsolve(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num_bins, range_dat, MIN_EVS, linear_bins=True, path = './'):
+def BL_test_fsolve(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num_bins, range_dat, MIN_EVS, linear_bins=True):
 
 	# FIND THE SIGNIFICANCE WITH POISSON BIN LIKELIHOOD USING THE TEST STATISTIC FORMALISM (gives statistical error) 
 	# Inputs:
@@ -804,16 +796,12 @@ def BL_test_fsolve(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, n
     plt.ylabel("Fraction of pseudo experiments",fontsize=16)
     plt.grid()
     plt.legend(fontsize=14)
-    plt.savefig(path + 'BLSolved_qmuhat_dist.pdf')
     plt.show()
     
     
     
     # With the calculation of mu_hat
     muhat_mean_bins = np.mean(muhat_selected_bins_list)
-    plt.hist(np.asarray(muhat_selected_bins_list))
-    plt.xlabel(r'$\hat{\mu}$')
-    plt.savefig(path + 'BLSolved_muhat_dist.pdf')
 
     Z_bins = abs( np.median(q_muhat_bins) )**0.5
     Z_bins_std = np.std(q_muhat_bins) / (2.*Z_bins)
@@ -840,7 +828,7 @@ def BL_test_fsolve(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, n
 # SIGNIFICANCE, AZIMOV DATASET #
 ################################
 
-def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected, S_expected, num_pseudo, path = './'):
+def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected, S_expected, num_pseudo):
 
 	# FIND THE SIGNIFICANCE WITH MLL USING THE TEST STATISTIC FORMALISM (gives statistical error) 
 	# Inputs:
@@ -1083,16 +1071,12 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
     plt.ylabel("Fraction of pseudo experiments",fontsize=16)
     plt.grid()
     plt.legend(fontsize=14)
-    plt.savefig(path + 'MLLFast_qmuhat_dist.pdf')
     plt.show()
     
     
     
     # With the calculation of mu_hat
     muhat_mean_MLL = np.mean(muhat_selected_MLL_list)
-    plt.hist(np.asarray(muhat_selected_MLL_list))
-    plt.xlabel(r'$\hat{\mu}$')
-    plt.savefig(path + 'MLLFast_muhat_dist.pdf')
 
     Z_MLL = abs( np.median(q_muhat_MLL) )**0.5
     Z_MLL_std = np.std(q_muhat_MLL) / (2.*Z_MLL)
@@ -1113,7 +1097,7 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
 
 
 
-def MLL_test_fsolve(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected, S_expected, num_pseudo, path = './'):
+def MLL_test_fsolve(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected, S_expected, num_pseudo):
 
 	# FIND THE SIGNIFICANCE WITH MLL USING THE TEST STATISTIC FORMALISM (gives statistical error) 
 	# Inputs:
@@ -1273,16 +1257,12 @@ def MLL_test_fsolve(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expect
     plt.ylabel("Fraction of pseudo experiments",fontsize=16)
     plt.grid()
     plt.legend(fontsize=14)
-    plt.savefig(path + 'MLLSolved_qmuhat_dist.pdf')
     plt.show()
     
     
     
     # With the calculation of mu_hat
     muhat_mean_MLL = np.mean(muhat_selected_MLL_list)
-    plt.hist(np.asarray(muhat_selected_MLL_list))
-    plt.xlabel(r'$\hat{\mu}$')
-    plt.savefig(path + 'MLLSolved_muhat_dist.pdf')
 
     Z_MLL = abs( np.median(q_muhat_MLL) )**0.5
     Z_MLL_std = np.std(q_muhat_MLL) / (2.*Z_MLL)
