@@ -887,7 +887,9 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
             # p_s(o(x_ensemble)) =  p_s(o(B_ensemble))
             prob_x_given_S = pS_B_data_shuf
 
-
+            if np.min(prob_x_given_B) == 0:
+                print('There are events with p(s)=0')
+                prob_x_given_B[np.where(prob_x_given_B == 0 )[0]] = np.min(prob_x_given_B[np.where(prob_x_given_B > 0 )[0]])
 
             # NOW WE HAVE p_{s,b}(x_ensemble) for this particular pseudo_experiment
 
@@ -959,8 +961,7 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
             
             
 
-  
-            
+
         if D_or_E == 'discovery': # Background and Signal events
             
             # this pseudo-exp has S_rand number of S events
@@ -987,6 +988,9 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
             prob_x_given_S = np.concatenate([pS_B_data_shuf,pS_S_data_shuf])
 
 
+            if np.min(prob_x_given_B) == 0:
+                print('There are events with p(s)=0')
+                prob_x_given_B[np.where(prob_x_given_B == 0 )[0]] = np.min(prob_x_given_B[np.where(prob_x_given_B > 0 )[0]])
 
             # NOW WE HAVE p_{s,b}(x_ensemble) for this particular pseudo_experiment
 
