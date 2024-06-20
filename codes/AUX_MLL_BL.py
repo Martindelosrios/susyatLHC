@@ -1020,7 +1020,7 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
             elif sum_muhat_zero < 1 < sum_muhat_two:
                 
                 # grid, mu_hat is around 1
-                muhat_test = np.arange(0, 2., 0.05)
+                muhat_test = np.arange(0, 2.05, 0.05)
 
                 for vv in range(len(muhat_test)):
 
@@ -1033,7 +1033,7 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
             elif sum_muhat_two < 1 < sum_muhat_zero:
                 
                 # grid, mu_hat is around 1
-                muhat_test = np.arange(0, 2., 0.05)
+                muhat_test = np.arange(0, 2.05, 0.05)
 
                 for vv in range(len(muhat_test)):
 
@@ -1045,6 +1045,9 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
                         
                         
             # save the computed mu_hat (within range) for each pseudo_experiment
+            if 'muhat_selected_MLL' not in locals():
+                print('muhat2', sum_muhat_two)
+                print('muhat0', sum_muhat_zero)
             muhat_selected_MLL_list.append(muhat_selected_MLL)
             
             
