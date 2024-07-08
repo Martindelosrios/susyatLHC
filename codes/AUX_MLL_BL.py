@@ -404,170 +404,173 @@ def BL_test_fast(D_or_E, B_data, S_data, B_expected, S_expected, num_pseudo, num
     
     # loop over the number of pseudo experiments
     for its in range(num_pseudo):
-        
         B_rand = np.random.poisson(int(B_expected))
         
         B_data_shuf = np.random.choice(B_data, size = B_rand, replace = False)
         
         
-        if D_or_E == 'exclusion': # only Background events
-            
-            pseudo_exp = B_data_shuf # only B
-
-            
-            # Let's find out the number of B and S events in each bin for this pseudo-experiment:
-
-            # bin the parameter space of all background events
-            hist_N, binedges_N = np.histogramdd([pseudo_exp], bins=(num_bins), range = range_dat)
-            # events per bin of the pseudo experiment
-            N_pseudo = hist_N
-
-            if min(N_pseudo) >= MIN_EVS:
+        try:
+            if D_or_E == 'exclusion': # only Background events
                 
-                # approximation: mu_hat=0
-                q_muhat_bins_mu.append( -2 * sum([( (ni * np.log( ((1.*si)+bi)/((0.*si)+bi) ) ) - ((1.*si)+bi) + ((0.*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
-
+                pseudo_exp = B_data_shuf # only B
+    
                 
-                # reference points
-                sum_muhat_zero = sum ( [((ni*si) / (((-0.25)*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-                sum_muhat_one = sum ( [((ni*si) / ((1.*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-
-
-                # we need (implicit eq. for mu_hat) = 0
-                # conditions considering the reference points
-                if (sum_muhat_zero < sum_muhat_one < 0) or (0 < sum_muhat_one < sum_muhat_zero):
-
-                    muhat_selected_bins = 1.1
-
-                elif (sum_muhat_one < sum_muhat_zero < 0) or (0 < sum_muhat_zero < sum_muhat_one):
-
-                    muhat_selected_bins = -0.3
-
-                elif sum_muhat_zero < 0 < sum_muhat_one:
-
-                    # grid, mu_hat is around 0
-                    muhat_test = np.arange(-0.25, 1., 0.05)
-
-                    for vv in range(len(muhat_test)):
-
-                        mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-                        
-                        if mu_hat_condition_equal_0 > 0:
-                            muhat_selected_bins = muhat_test[vv]
-                            break
-
-                elif sum_muhat_one < 0 < sum_muhat_zero:
-
-                    # grid, mu_hat is around 0
-                    muhat_test = np.arange(-0.25, 1., 0.05)
-
-                    for vv in range(len(muhat_test)):
-
-                        mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-
-                        if mu_hat_condition_equal_0 < 0:
-                            muhat_selected_bins = muhat_test[vv]
-                            break
-                        
-                        
-                # save the computed mu_hat for each pseudo_experiment
-                muhat_selected_bins_list.append(muhat_selected_bins)
-
-                
-                # compute the test statistic for each pseudo_exp considering mu_hat
-                if muhat_selected_bins > 1:
-                    q_muhat_bins.append( 0 )
+                # Let's find out the number of B and S events in each bin for this pseudo-experiment:
+    
+                # bin the parameter space of all background events
+                hist_N, binedges_N = np.histogramdd([pseudo_exp], bins=(num_bins), range = range_dat)
+                # events per bin of the pseudo experiment
+                N_pseudo = hist_N
+    
+                if min(N_pseudo) >= MIN_EVS:
                     
-                elif muhat_selected_bins > 0:
-                    q_muhat_bins.append( -2 * sum([( (ni * np.log( ((1.*si)+bi)/((muhat_selected_bins*si)+bi) ) ) - ((1.*si)+bi) + ((muhat_selected_bins*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
-
-                else:
-                    q_muhat_bins.append( -2 * sum([( (ni * np.log( ((1.*si)+bi)/((0.*si)+bi) ) ) - ((1.*si)+bi) + ((0.*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
-
-            else:
-                fail_pseudo += 1
-                
-                
-            
-        if D_or_E == 'discovery': # Background and Signal events
-            
-            S_rand = np.random.poisson(int(S_expected))
-            
-            S_data_shuf = np.random.choice(S_data, size = S_rand, replace = False)
-            
-            
-            pseudo_exp = np.concatenate([B_data_shuf,S_data_shuf]) # Background and Signal
-            
-
-
-            # Let's find out the expected number of B and S events in each bin:
-
-            # bin the parameter space of all background events
-            hist_N, binedges_N = np.histogramdd([pseudo_exp], bins=(num_bins), range = range_dat)
-            # events per bin of the pseudo experiment
-            N_pseudo = hist_N
-
-            if min(N_pseudo) >= MIN_EVS:
-                
-                # approximation: mu_hat=1
-                q_muhat_bins_mu.append( -2 * sum([( (ni * np.log( ((0.*si)+bi)/((1.*si)+bi) ) ) - ((0.*si)+bi) + ((1.*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
-
-                
-                # reference points
-                sum_muhat_zero = sum ( [((ni*si) / (((0)*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-                sum_muhat_two = sum ( [((ni*si) / ((2.*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-
-                
-                # we need (implicit eq. for mu_hat) = 0
-                # conditions considering the reference points
-                if (sum_muhat_zero < sum_muhat_two < 0) or (0 < sum_muhat_two < sum_muhat_zero):
-
-                    muhat_selected_bins = 2.1
-
-                elif (sum_muhat_two < sum_muhat_zero < 0) or (0 < sum_muhat_zero < sum_muhat_two):
-
-                    muhat_selected_bins = -0.1
-
-                elif sum_muhat_zero < 0 < sum_muhat_two:
-
-                    # grid, mu_hat is around 1
-                    muhat_test = np.arange(0, 2., 0.05)
-
-                    for vv in range(len(muhat_test)):
-
-                        mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-
-                        if mu_hat_condition_equal_0 > 0:
-                            muhat_selected_bins = muhat_test[vv]
-                            break
-
-                elif sum_muhat_two < 0 < sum_muhat_zero:
-
-                    # grid, mu_hat is around 1
-                    muhat_test = np.arange(0, 2., 0.05)
-
-                    for vv in range(len(muhat_test)):
-
-                        mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
-
-                        if mu_hat_condition_equal_0 < 0:
-                            muhat_selected_bins = muhat_test[vv]
-                            break
-
-
-                # save the computed mu_hat for each pseudo_experiment
-                muhat_selected_bins_list.append(muhat_selected_bins)
-                
-                
-                # compute the test statistic for each pseudo_exp considering mu_hat
-                if muhat_selected_bins > 0:
-                    q_muhat_bins.append( -2 * sum([( (ni * np.log( ((0.*si)+bi)/((muhat_selected_bins*si)+bi) ) ) - ((0.*si)+bi) + ((muhat_selected_bins*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
-                
-                else:
-                    q_muhat_bins.append( 0 )
+                    # approximation: mu_hat=0
+                    q_muhat_bins_mu.append( -2 * sum([( (ni * np.log( ((1.*si)+bi)/((0.*si)+bi) ) ) - ((1.*si)+bi) + ((0.*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
+    
                     
-            else:
-                fail_pseudo += 1
+                    # reference points
+                    sum_muhat_zero = sum ( [((ni*si) / (((-0.25)*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+                    sum_muhat_one = sum ( [((ni*si) / ((1.*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+    
+    
+                    # we need (implicit eq. for mu_hat) = 0
+                    # conditions considering the reference points
+                    if (sum_muhat_zero < sum_muhat_one < 0) or (0 < sum_muhat_one < sum_muhat_zero):
+    
+                        muhat_selected_bins = 1.1
+    
+                    elif (sum_muhat_one < sum_muhat_zero < 0) or (0 < sum_muhat_zero < sum_muhat_one):
+    
+                        muhat_selected_bins = -0.3
+    
+                    elif sum_muhat_zero < 0 < sum_muhat_one:
+    
+                        # grid, mu_hat is around 0
+                        muhat_test = np.arange(-0.25, 1., 0.05)
+    
+                        for vv in range(len(muhat_test)):
+    
+                            mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+                            
+                            if mu_hat_condition_equal_0 > 0:
+                                muhat_selected_bins = muhat_test[vv]
+                                break
+    
+                    elif sum_muhat_one < 0 < sum_muhat_zero:
+    
+                        # grid, mu_hat is around 0
+                        muhat_test = np.arange(-0.25, 1., 0.05)
+    
+                        for vv in range(len(muhat_test)):
+    
+                            mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+    
+                            if mu_hat_condition_equal_0 < 0:
+                                muhat_selected_bins = muhat_test[vv]
+                                break
+                            
+                            
+                    # save the computed mu_hat for each pseudo_experiment
+                    muhat_selected_bins_list.append(muhat_selected_bins)
+    
+                    
+                    # compute the test statistic for each pseudo_exp considering mu_hat
+                    if muhat_selected_bins > 1:
+                        q_muhat_bins.append( 0 )
+                        
+                    elif muhat_selected_bins > 0:
+                        q_muhat_bins.append( -2 * sum([( (ni * np.log( ((1.*si)+bi)/((muhat_selected_bins*si)+bi) ) ) - ((1.*si)+bi) + ((muhat_selected_bins*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
+    
+                    else:
+                        q_muhat_bins.append( -2 * sum([( (ni * np.log( ((1.*si)+bi)/((0.*si)+bi) ) ) - ((1.*si)+bi) + ((0.*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
+    
+                else:
+                    fail_pseudo += 1
+                    
+                    
+                
+            if D_or_E == 'discovery': # Background and Signal events
+                
+                S_rand = np.random.poisson(int(S_expected))
+                
+                S_data_shuf = np.random.choice(S_data, size = S_rand, replace = False)
+                
+                
+                pseudo_exp = np.concatenate([B_data_shuf,S_data_shuf]) # Background and Signal
+                
+    
+    
+                # Let's find out the expected number of B and S events in each bin:
+    
+                # bin the parameter space of all background events
+                hist_N, binedges_N = np.histogramdd([pseudo_exp], bins=(num_bins), range = range_dat)
+                # events per bin of the pseudo experiment
+                N_pseudo = hist_N
+    
+                if min(N_pseudo) >= MIN_EVS:
+                    
+                    # approximation: mu_hat=1
+                    q_muhat_bins_mu.append( -2 * sum([( (ni * np.log( ((0.*si)+bi)/((1.*si)+bi) ) ) - ((0.*si)+bi) + ((1.*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
+    
+                    
+                    # reference points
+                    sum_muhat_zero = sum ( [((ni*si) / (((0)*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+                    sum_muhat_two = sum ( [((ni*si) / ((2.*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+    
+                    
+                    # we need (implicit eq. for mu_hat) = 0
+                    # conditions considering the reference points
+                    if (sum_muhat_zero < sum_muhat_two < 0) or (0 < sum_muhat_two < sum_muhat_zero):
+    
+                        muhat_selected_bins = 2.1
+    
+                    elif (sum_muhat_two < sum_muhat_zero < 0) or (0 < sum_muhat_zero < sum_muhat_two):
+    
+                        muhat_selected_bins = -0.1
+    
+                    elif sum_muhat_zero < 0 < sum_muhat_two:
+    
+                        # grid, mu_hat is around 1
+                        muhat_test = np.arange(0, 2., 0.05)
+    
+                        for vv in range(len(muhat_test)):
+    
+                            mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+    
+                            if mu_hat_condition_equal_0 > 0:
+                                muhat_selected_bins = muhat_test[vv]
+                                break
+    
+                    elif sum_muhat_two < 0 < sum_muhat_zero:
+    
+                        # grid, mu_hat is around 1
+                        muhat_test = np.arange(0, 2., 0.05)
+    
+                        for vv in range(len(muhat_test)):
+    
+                            mu_hat_condition_equal_0 = sum ( [((ni*si) / ((muhat_test[vv]*si) + bi)) - si for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)] )
+    
+                            if mu_hat_condition_equal_0 < 0:
+                                muhat_selected_bins = muhat_test[vv]
+                                break
+    
+    
+                    # save the computed mu_hat for each pseudo_experiment
+                    muhat_selected_bins_list.append(muhat_selected_bins)
+                    
+                    
+                    # compute the test statistic for each pseudo_exp considering mu_hat
+                    if muhat_selected_bins > 0:
+                        q_muhat_bins.append( -2 * sum([( (ni * np.log( ((0.*si)+bi)/((muhat_selected_bins*si)+bi) ) ) - ((0.*si)+bi) + ((muhat_selected_bins*si)+bi) ) for ni, si, bi in zip(N_pseudo, sig_prom_bins, back_prom_bins)]) )
+                    
+                    else:
+                        q_muhat_bins.append( 0 )
+                        
+                else:
+                    fail_pseudo += 1
+        except:
+            fail_pseudo += 1
+        
                 
                 
                 
@@ -860,6 +863,8 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
     q_muhat_MLL_mu = []
     
     # loop over the number of pseudo experiments
+    
+    fail_pseudo = 0
     for its in range(num_pseudo):
         
         # this pseudo-exp has B_rand number of B events
@@ -878,188 +883,191 @@ def MLL_test_fast(D_or_E, pB_B_data, pS_B_data, pB_S_data, pS_S_data, B_expected
         pB_B_data_shuf  = np.array(pB_B_data_shuf)
         pS_B_data_shuf  = np.array(pS_B_data_shuf)
         
-        
-        if D_or_E == 'exclusion': # only Background events
-        
-            # p_b(o(x_ensemble)) =  p_b(o(B_ensemble))
-            prob_x_given_B = pB_B_data_shuf
-
-            # p_s(o(x_ensemble)) =  p_s(o(B_ensemble))
-            prob_x_given_S = pS_B_data_shuf
-
-            if np.min(prob_x_given_B) == 0:
-                print('There are events with p(s)=0')
-                prob_x_given_B[np.where(prob_x_given_B == 0 )[0]] = np.min(prob_x_given_B[np.where(prob_x_given_B > 0 )[0]])
-
-            # NOW WE HAVE p_{s,b}(x_ensemble) for this particular pseudo_experiment
-
-            # approximation: mu_hat=0 (exclusion)
-            q_muhat_MLL_mu.append( 2 * ( ( (1.-0.) * S_expected ) - sum( [np.log( ( (B_expected*y) + (S_expected*x) ) / ( (B_expected*y) + (0.*S_expected*x) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
-
+        try:
+            if D_or_E == 'exclusion': # only Background events
             
-            # ESTIMATE mu_hat for this particular ensemble (implicit equation)
-            B_prob_x_given_B = [x * B_expected for x in prob_x_given_B]
-            
-            # reference points
-            sum_muhat_zero = sum ( [(x*1.) / ( (x * (-0.25) * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-            sum_muhat_one = sum ( [(x*1.) / ( (x * 1. * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-
-            
-            # we need (implicit eq. for mu_hat) = 1
-            # conditions considering the reference points
-            if (sum_muhat_zero < sum_muhat_one < 1) or (1 < sum_muhat_one < sum_muhat_zero):
+                # p_b(o(x_ensemble)) =  p_b(o(B_ensemble))
+                prob_x_given_B = pB_B_data_shuf
+    
+                # p_s(o(x_ensemble)) =  p_s(o(B_ensemble))
+                prob_x_given_S = pS_B_data_shuf
+    
+                if np.min(prob_x_given_B) == 0:
+                    print('There are events with p(s)=0')
+                    prob_x_given_B[np.where(prob_x_given_B == 0 )[0]] = np.min(prob_x_given_B[np.where(prob_x_given_B > 0 )[0]])
+    
+                # NOW WE HAVE p_{s,b}(x_ensemble) for this particular pseudo_experiment
+    
+                # approximation: mu_hat=0 (exclusion)
+                q_muhat_MLL_mu.append( 2 * ( ( (1.-0.) * S_expected ) - sum( [np.log( ( (B_expected*y) + (S_expected*x) ) / ( (B_expected*y) + (0.*S_expected*x) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
+    
                 
-                muhat_selected_MLL = 1.1
+                # ESTIMATE mu_hat for this particular ensemble (implicit equation)
+                B_prob_x_given_B = [x * B_expected for x in prob_x_given_B]
                 
-            elif (sum_muhat_one < sum_muhat_zero < 1) or (1 < sum_muhat_zero < sum_muhat_one):
+                # reference points
+                sum_muhat_zero = sum ( [(x*1.) / ( (x * (-0.25) * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+                sum_muhat_one = sum ( [(x*1.) / ( (x * 1. * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+    
                 
-                muhat_selected_MLL = -0.3
-
-            elif sum_muhat_zero < 1 < sum_muhat_one:
-                
-                # grid, mu_hat is around 0
-                muhat_test = np.arange(-0.25, 1., 0.05)
-
-                for vv in range(len(muhat_test)):
-
-                    mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-
-                    if mu_hat_condition_equal_1 > 1:
-                        muhat_selected_MLL = muhat_test[vv]
-                        break
-
-            elif sum_muhat_one < 1 < sum_muhat_zero:
-                
-                # grid, mu_hat is around 0
-                muhat_test = np.arange(-0.25, 1., 0.05)
-
-                for vv in range(len(muhat_test)):
-
-                    mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-
-                    if mu_hat_condition_equal_1 < 1:
-                        muhat_selected_MLL = muhat_test[vv]
-                        break
-                        
-                        
-            # save the computed mu_hat (within range) for each pseudo_experiment
-            muhat_selected_MLL_list.append(muhat_selected_MLL)
-                        
-                        
-            # compute the test statistic for each pseudo_exp considering mu_hat
-            if muhat_selected_MLL > 1:
-                q_muhat_MLL.append( 0 )
-
-            elif muhat_selected_MLL > 0:
-                q_muhat_MLL.append( 2 * ( ( (1.-muhat_selected_MLL) * S_expected ) - sum( [np.log( ( (B_expected*y) + (S_expected*x) ) / ( (B_expected*y) + (muhat_selected_MLL*S_expected*x) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
-
-            else:
-                q_muhat_MLL.append( 2 * ( ( (1.-0.) * S_expected ) - sum( [np.log( ( (B_expected*y) + (S_expected*x) ) / ( (B_expected*y) + (0*S_expected*x) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
-
-            
-            
-            
-            
-
-
-        if D_or_E == 'discovery': # Background and Signal events
-            
-            # this pseudo-exp has S_rand number of S events
-            S_rand = np.random.poisson(int(S_expected))
-            
-            ran_ind = np.random.choice(indices_S, S_rand)
-
-            pB_S_data_shuf = []
-            pS_S_data_shuf = []
-
-            # for each event x_i in the pseudo, save pb(o(x_i)) and ps(o(x_i)) (notice its the same x_i for pb and ps)
-            for i in ran_ind:
-                pB_S_data_shuf.append(pB_S_data[i])
-                pS_S_data_shuf.append(pS_S_data[i])
-
-            pB_S_data_shuf  = np.array(pB_S_data_shuf)
-            pS_S_data_shuf  = np.array(pS_S_data_shuf)
-            
-            
-            # p_b(o(x_ensemble)) =  concatenate: p_b(o(B_ensemble)) and p_b(o(S_ensemble)) 
-            prob_x_given_B = np.concatenate([pB_B_data_shuf,pB_S_data_shuf])
-
-            # p_s(o(x_ensemble)) =  concatenate: p_s(o(B_ensemble)) and p_s(o(S_ensemble)) 
-            prob_x_given_S = np.concatenate([pS_B_data_shuf,pS_S_data_shuf])
-
-
-            if np.min(prob_x_given_B) == 0:
-                print('There are events with p(s)=0')
-                prob_x_given_B[np.where(prob_x_given_B == 0 )[0]] = np.min(prob_x_given_B[np.where(prob_x_given_B > 0 )[0]])
-
-            # NOW WE HAVE p_{s,b}(x_ensemble) for this particular pseudo_experiment
-
-            # approximation: mu_hat=1 (discovery)
-            q_muhat_MLL_mu.append( 2 * ( ( -1. * S_expected) + sum( [np.log( 1 + ( (1.*S_expected/B_expected) * (x / y) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
-
-            
-            
-            # ESTIMATE mu_hat for this particular ensemble (implicit equation)
-            B_prob_x_given_B = [x * B_expected for x in prob_x_given_B]
-            
-            # reference points
-            sum_muhat_zero = sum ( [(x*1.) / ( (x * (0) * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-            sum_muhat_two = sum ( [(x*1.) / ( (x * 2. * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-
-            
-            # we need (implicit eq. for mu_hat) = 1
-            # conditions considering the reference points
-            if (sum_muhat_zero < sum_muhat_two < 1) or (1 < sum_muhat_two < sum_muhat_zero):
-                
-                muhat_selected_MLL = 2.1
-                
-            elif (sum_muhat_two < sum_muhat_zero < 1) or (1 < sum_muhat_zero < sum_muhat_two):
-                
-                muhat_selected_MLL = -0.1
-
-            elif sum_muhat_zero < 1 < sum_muhat_two:
-                
-                # grid, mu_hat is around 1
-                muhat_test = np.arange(0, 2.05, 0.05)
-
-                for vv in range(len(muhat_test)):
-
-                    mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-
-                    if mu_hat_condition_equal_1 > 1:
-                        muhat_selected_MLL = muhat_test[vv]
-                        break
-
-            elif sum_muhat_two < 1 < sum_muhat_zero:
-                
-                # grid, mu_hat is around 1
-                muhat_test = np.arange(0, 2.05, 0.05)
-
-                for vv in range(len(muhat_test)):
-
-                    mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
-
-                    if mu_hat_condition_equal_1 < 1:
-                        muhat_selected_MLL = muhat_test[vv]
-                        break
-                        
-                        
-            # save the computed mu_hat (within range) for each pseudo_experiment
-            if 'muhat_selected_MLL' not in locals():
-                print('muhat2', sum_muhat_two)
-                print('muhat0', sum_muhat_zero)
-            muhat_selected_MLL_list.append(muhat_selected_MLL)
-            
-            
-            # compute the test statistic for each pseudo_exp considering mu_hat
-            if muhat_selected_MLL > 0:
-                q_muhat_MLL.append( 2 * ( (-1.*muhat_selected_MLL * S_expected) + sum( [np.log( 1 + ( (muhat_selected_MLL*S_expected/B_expected) * (x / y) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
-
-            else:
-                q_muhat_MLL.append( 0 )
+                # we need (implicit eq. for mu_hat) = 1
+                # conditions considering the reference points
+                if (sum_muhat_zero < sum_muhat_one < 1) or (1 < sum_muhat_one < sum_muhat_zero):
+                    
+                    muhat_selected_MLL = 1.1
+                    
+                elif (sum_muhat_one < sum_muhat_zero < 1) or (1 < sum_muhat_zero < sum_muhat_one):
+                    
+                    muhat_selected_MLL = -0.3
+    
+                elif sum_muhat_zero < 1 < sum_muhat_one:
+                    
+                    # grid, mu_hat is around 0
+                    muhat_test = np.arange(-0.25, 1., 0.05)
+    
+                    for vv in range(len(muhat_test)):
+    
+                        mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+    
+                        if mu_hat_condition_equal_1 > 1:
+                            muhat_selected_MLL = muhat_test[vv]
+                            break
+    
+                elif sum_muhat_one < 1 < sum_muhat_zero:
+                    
+                    # grid, mu_hat is around 0
+                    muhat_test = np.arange(-0.25, 1., 0.05)
+    
+                    for vv in range(len(muhat_test)):
+    
+                        mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+    
+                        if mu_hat_condition_equal_1 < 1:
+                            muhat_selected_MLL = muhat_test[vv]
+                            break
+                            
+                            
+                # save the computed mu_hat (within range) for each pseudo_experiment
+                muhat_selected_MLL_list.append(muhat_selected_MLL)
+                            
+                            
+                # compute the test statistic for each pseudo_exp considering mu_hat
+                if muhat_selected_MLL > 1:
+                    q_muhat_MLL.append( 0 )
+    
+                elif muhat_selected_MLL > 0:
+                    q_muhat_MLL.append( 2 * ( ( (1.-muhat_selected_MLL) * S_expected ) - sum( [np.log( ( (B_expected*y) + (S_expected*x) ) / ( (B_expected*y) + (muhat_selected_MLL*S_expected*x) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
+    
+                else:
+                    q_muhat_MLL.append( 2 * ( ( (1.-0.) * S_expected ) - sum( [np.log( ( (B_expected*y) + (S_expected*x) ) / ( (B_expected*y) + (0*S_expected*x) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
+    
                 
                 
+                
+                
+    
+    
+            if D_or_E == 'discovery': # Background and Signal events
+                
+                # this pseudo-exp has S_rand number of S events
+                S_rand = np.random.poisson(int(S_expected))
+                
+                ran_ind = np.random.choice(indices_S, S_rand)
+    
+                pB_S_data_shuf = []
+                pS_S_data_shuf = []
+    
+                # for each event x_i in the pseudo, save pb(o(x_i)) and ps(o(x_i)) (notice its the same x_i for pb and ps)
+                for i in ran_ind:
+                    pB_S_data_shuf.append(pB_S_data[i])
+                    pS_S_data_shuf.append(pS_S_data[i])
+    
+                pB_S_data_shuf  = np.array(pB_S_data_shuf)
+                pS_S_data_shuf  = np.array(pS_S_data_shuf)
+                
+                
+                # p_b(o(x_ensemble)) =  concatenate: p_b(o(B_ensemble)) and p_b(o(S_ensemble)) 
+                prob_x_given_B = np.concatenate([pB_B_data_shuf,pB_S_data_shuf])
+    
+                # p_s(o(x_ensemble)) =  concatenate: p_s(o(B_ensemble)) and p_s(o(S_ensemble)) 
+                prob_x_given_S = np.concatenate([pS_B_data_shuf,pS_S_data_shuf])
+    
+    
+                if np.min(prob_x_given_B) == 0:
+                    print('There are events with p(s)=0')
+                    prob_x_given_B[np.where(prob_x_given_B == 0 )[0]] = np.min(prob_x_given_B[np.where(prob_x_given_B > 0 )[0]])
+                    print(np.min(prob_x_given_B))
+    
+                # NOW WE HAVE p_{s,b}(x_ensemble) for this particular pseudo_experiment
+    
+                # approximation: mu_hat=1 (discovery)
+                q_muhat_MLL_mu.append( 2 * ( ( -1. * S_expected) + sum( [np.log( 1 + ( (1.*S_expected/B_expected) * (x / y) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
+    
+                
+                
+                # ESTIMATE mu_hat for this particular ensemble (implicit equation)
+                B_prob_x_given_B = [x * B_expected for x in prob_x_given_B]
+                
+                # reference points
+                sum_muhat_zero = sum ( [(x*1.) / ( (x * (0) * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+                sum_muhat_two = sum ( [(x*1.) / ( (x * 2. * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+    
+                
+                # we need (implicit eq. for mu_hat) = 1
+                # conditions considering the reference points
+                if (sum_muhat_zero < sum_muhat_two < 1) or (1 < sum_muhat_two < sum_muhat_zero):
+                    
+                    muhat_selected_MLL = 2.1
+                    
+                elif (sum_muhat_two < sum_muhat_zero < 1) or (1 < sum_muhat_zero < sum_muhat_two):
+                    
+                    muhat_selected_MLL = -0.1
+    
+                elif sum_muhat_zero < 1 < sum_muhat_two:
+                    
+                    # grid, mu_hat is around 1
+                    muhat_test = np.arange(0, 2.05, 0.05)
+    
+                    for vv in range(len(muhat_test)):
+    
+                        mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+    
+                        if mu_hat_condition_equal_1 > 1:
+                            muhat_selected_MLL = muhat_test[vv]
+                            break
+    
+                elif sum_muhat_two < 1 < sum_muhat_zero:
+                    
+                    # grid, mu_hat is around 1
+                    muhat_test = np.arange(0, 2.05, 0.05)
+    
+                    for vv in range(len(muhat_test)):
+    
+                        mu_hat_condition_equal_1 = sum ( [(x*1.) / ( (x * muhat_test[vv] * S_expected) + y ) for x, y in zip(prob_x_given_S, B_prob_x_given_B)] )
+    
+                        if mu_hat_condition_equal_1 < 1:
+                            muhat_selected_MLL = muhat_test[vv]
+                            break
+                            
+                            
+                # save the computed mu_hat (within range) for each pseudo_experiment
+                if 'muhat_selected_MLL' not in locals():
+                    print('muhat2', sum_muhat_two)
+                    print('muhat0', sum_muhat_zero)
+                muhat_selected_MLL_list.append(muhat_selected_MLL)
+                
+                
+                # compute the test statistic for each pseudo_exp considering mu_hat
+                if muhat_selected_MLL > 0:
+                    q_muhat_MLL.append( 2 * ( (-1.*muhat_selected_MLL * S_expected) + sum( [np.log( 1 + ( (muhat_selected_MLL*S_expected/B_expected) * (x / y) ) ) for x, y in zip(prob_x_given_S, prob_x_given_B)] ) ) )
+    
+                else:
+                    q_muhat_MLL.append( 0 )
+        except:
+            fail_pseudo += 1
+                
             
+    print('Ratio of pseudo experiments that do not satisfied the MIN_EVS condition: ', fail_pseudo/num_pseudo)
     # Histogram of q_muhats
     plt.figure(figsize=(7,5))
     
